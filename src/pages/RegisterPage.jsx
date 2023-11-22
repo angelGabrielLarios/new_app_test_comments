@@ -106,7 +106,7 @@ export const RegisterPage = () => {
             </header>
 
             <form
-                className="w-10/12 lg:w-6/12 py-12 px-6 border border-secondary rounded-xl shadow-lg shadow-secondary space-y-6"
+                className="w-full lg:w-6/12 py-12 px-6 border border-secondary rounded-xl shadow-lg shadow-secondary space-y-6"
                 onSubmit={handleSubmit(onSubmitForm)}
 
             >
@@ -312,7 +312,7 @@ export const RegisterPage = () => {
                     }
                 </button>
 
-                <p className="text-center text-xs lg:text-sm">¿Ya tienes una cuenta? <Link className="text-secondary font-bold" to={`/auth/login`}>Inicia Sesión</Link></p>
+                <p className="text-center text-sm lg:text-sm">¿Ya tienes una cuenta? <Link className="text-secondary font-bold" to={`/auth/login`}>Inicia Sesión</Link></p>
             </form>
 
             <ModalError

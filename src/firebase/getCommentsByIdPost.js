@@ -1,19 +1,21 @@
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
-import { db } from "./firebaseConfig";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore"
+import { db } from "./firebaseConfig"
 
 export const getCommentsByIdPost = async ({ idPost = "" }) => {
-    const commentsRef = collection(db, "comments")
+    try {
+        const commentsRef = collection(db, "comments")
 
-    const q = query(commentsRef, where("idPost", "==", idPost), orderBy('dateCommeted', 'desc'));
+        const q = query(commentsRef, where("idPost", "==", idPost), orderBy('dateCommeted', 'desc'));
 
-    const querySnapshot = await getDocs(q)
+        const querySnapshot = await getDocs(q)
 
-    const arrCommentsFirestore = []
 
-    querySnapshot.forEach((doc) => {
+        const data = querySnapshot.docs.map(doc => doc.data())
 
-        arrCommentsFirestore.push(doc.data())
-    })
+        return data
+    } catch (error) {
+        console.error(error)
+        throw new Error(error)
+    }
 
-    return arrCommentsFirestore
 }

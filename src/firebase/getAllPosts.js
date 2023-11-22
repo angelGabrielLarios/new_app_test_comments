@@ -10,14 +10,17 @@ export const getAllPosts = async () => {
         const q = query(postsRef, orderBy('datePosted', 'desc'))
         const querySnapshot = await getDocs(q);
 
-        const arrayTempPostFirestore = []
+        /* const arrayTempPostFirestore = []
         querySnapshot.forEach((doc) => {
             arrayTempPostFirestore.push({
                 ...doc.data()
             })
         })
 
-        return arrayTempPostFirestore
+        return arrayTempPostFirestore */
+
+        const data = querySnapshot.docs.map(doc => doc.data())
+        return data
     } catch (error) {
         console.error(error)
         throw new Error(error)

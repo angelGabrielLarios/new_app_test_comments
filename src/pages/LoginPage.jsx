@@ -94,7 +94,7 @@ export const LoginPage = () => {
             </header>
 
             <form
-                className="w-10/12 lg:w-6/12 py-12 px-6 border border-secondary rounded-xl shadow-lg shadow-secondary space-y-6"
+                className="w-full lg:w-6/12 py-12 px-6 border border-secondary rounded-xl shadow-lg shadow-secondary space-y-6"
                 onSubmit={handleSubmit(onSubmitForm)}
 
             >
@@ -120,9 +120,9 @@ export const LoginPage = () => {
                     </article>
 
                     {
-                        errors?.password?.type === "required"
+                        errors?.email?.type === "required"
                             ? <AlertErrorForm>
-                                {errors.password.message}
+                                {errors.email.message}
                             </AlertErrorForm>
                             : null
 
@@ -187,7 +187,7 @@ export const LoginPage = () => {
                     }
                 </button>
 
-                <p className="text-center text-xs lg:text-base">¿No tienes una cuenta? <Link className="text-secondary font-bold" to={'/auth/register'}>Create una cuenta</Link></p>
+                <p className="text-center text-sm lg:text-sm">¿No tienes una cuenta? <Link className="text-secondary font-bold" to={'/auth/register'}>Create una cuenta</Link></p>
             </form>
         </main >
     )

@@ -10,6 +10,7 @@ import { logout } from "../store/auth"
 import { convertDate, formatDateTimeForPost, generateUniqueId } from "../helpers"
 import { ModalError, PostCard } from "../components"
 import { isCommentOffensive } from "../chatgpt3"
+import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
 
 
 
@@ -39,14 +40,9 @@ export const HomePage = () => {
 
     const ModalErrorPostRef = useRef(null)
 
-
-
-
+    const ModalPostWithCommentsRef = useRef(null)
 
     const { message } = useSelector(state => state.modalError)
-
-
-    /* const [isLoadingPostsFirestore, setIsLoadingPostsFirestore] = useState(false) */
 
     const navigate = useNavigate()
 
@@ -80,6 +76,7 @@ export const HomePage = () => {
     useEffect(() => {
 
         setisLoadingAllPosts(true)
+
         getAllPosts()
             .then(arrPostsFirestore => {
 
@@ -92,6 +89,8 @@ export const HomePage = () => {
             .finally(() => {
                 setisLoadingAllPosts(false)
             })
+
+
 
     }, [])
     const onSubmitAddPost = async ({ post = "" }) => {
@@ -131,7 +130,8 @@ export const HomePage = () => {
                 post,
                 datePosted: Timestamp.fromDate(new Date()),
                 urlImagePost: urlImagePost,
-            });
+                reactions: []
+            })
 
             setIsLoadingSendPost(false)
 
@@ -245,7 +245,7 @@ export const HomePage = () => {
             </nav>
 
             <section
-                className="w-10/12 lg:w-6/12 mx-auto mt-20"
+                className="w-full md:w-10/12 lg:w-6/12 mx-auto mt-20"
             >
                 <article
                     className="bg-neutral p-4 rounded-xl flex items-center gap-2 lg:gap-4 mb-4"
@@ -283,6 +283,7 @@ export const HomePage = () => {
                                             urlImagePost={urlImagePost}
                                             currentUser={currentUser}
                                             ModalErrorRef={ModalErrorCommentRef}
+                                            ModalPostWithCommentsRef={ModalPostWithCommentsRef}
                                         />
                                     )
                                 })
@@ -407,6 +408,10 @@ export const HomePage = () => {
                 message={`El post no se puede publicar porque se ha detectado que es inapropiado `}
             />
 
+            <PostWithCommentsCard
+                ModalPostWithCommentsRef={ModalPostWithCommentsRef}
+
+            />
 
 
         </>

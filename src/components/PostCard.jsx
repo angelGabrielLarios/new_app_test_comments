@@ -1,21 +1,23 @@
 import PropTypes from 'prop-types'
 
-import { Timestamp, doc, setDoc } from 'firebase/firestore'
-import { useEffect, useRef, useState } from 'react'
+import { Timestamp, arrayRemove, arrayUnion, doc, setDoc, updateDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { db, getCommentsByIdPost, getInfoUser } from '../firebase'
+import { db, getCommentsByIdPost, getInfoUser, getPostById, } from '../firebase'
 import { useDispatch, useSelector } from 'react-redux'
 import { generateUniqueId } from '../helpers'
-import { PostWithCommentsCard } from './PostWithCommentsCard'
 import { isCommentOffensive } from '../chatgpt3/'
 import { setMessage } from '../store/modalError/modalErrorSlice'
+import { setPostWithComments } from '../store/modalPostWithComments'
 
 
-export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef }) => {
+
+export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef, ModalPostWithCommentsRef }) => {
 
     const [isFavoritePost, setIsFavoritePost] = useState(false)
 
     const { user } = useSelector(state => state.auth)
+
     const dispatch = useDispatch()
 
     const [showToastCommentCreated, setShowToastCommentCreated] = useState(false)
@@ -29,9 +31,9 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
         }
     })
 
-    const ModalPostCartWithCommentsRef = useRef(null)
-
     const [isLoadingAddComment, setIsLoadingAddComment] = useState(false)
+
+    const [numberReactions, setNumberReactions] = useState(0)
 
 
     useEffect(() => {
@@ -40,16 +42,21 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
 
     }, [idPost])
 
+
     useEffect(() => {
-        const hiddenModalPostCartWithComments = () => {
-            if (!ModalPostCartWithCommentsRef.current.classList.contains('hidden')) {
-                ModalPostCartWithCommentsRef.current.classList.add('hidden')
-            }
+        getPostById({ idPost })
+            .then(data => {
+                setIsFavoritePost(data.reactions.includes(user.uid))
+            })
+    }, [idPost, user.uid])
 
-        }
-        ModalPostCartWithCommentsRef.current.addEventListener('close', hiddenModalPostCartWithComments)
+    useEffect(() => {
+        getPostById({ idPost })
+            .then(data => setNumberReactions(data.reactions.length))
+    }, [isFavoritePost, idPost])
 
-    }, [])
+
+
 
     const onSubmitAddComment = async (data) => {
         const { comment } = data
@@ -74,8 +81,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                 idPost: idPost,
                 currentUser,
                 comment,
-                dateCommeted: Timestamp.fromDate(new Date()),
-
+                dateCommeted: Timestamp.fromDate(new Date())
             })
             setShowToastCommentCreated(true)
             setIsLoadingAddComment(false)
@@ -120,37 +126,80 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                 }
 
                 <article className="flex items-center justify-between ">
-                    <div className="flex gap-2 items-center">
-                        <button
-                            onClick={() => setIsFavoritePost(!isFavoritePost)}
-                        >
+                    <div className="flex gap-3 items-center">
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={async () => {
 
-                            {
-                                isFavoritePost
-                                    ? <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#793ef9" className='transition duration-300 ease-in-out'></path> </g></svg>
+                                    const postsRef = doc(db, "posts", idPost);
 
-                                    : <svg width="30px" height="30px" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#2a2e37" className='transition duration-300 ease-in-out'></path> </g></svg>
-                            }
-                        </button>
+                                    const { reactions } = await getPostById({ idPost })
 
-                        <button
-                            onClick={() => {
+                                    if (!reactions.includes(user.uid)) {
+                                        await updateDoc(postsRef, {
+                                            reactions: arrayUnion(user.uid)
+                                        })
+                                        setIsFavoritePost(true)
+                                        console.log('1')
+                                    }
 
-                                if (ModalPostCartWithCommentsRef.current.classList.contains('hidden')) {
-                                    ModalPostCartWithCommentsRef.current.classList.remove('hidden')
-                                    ModalPostCartWithCommentsRef.current.showModal()
+                                    else {
+                                        await updateDoc(postsRef, {
+                                            reactions: arrayRemove(user.uid)
+                                        })
+                                        setIsFavoritePost(false)
+
+                                        console.log('2')
+                                    }
+
+                                }}
+                            >
+
+                                {
+                                    isFavoritePost
+                                        ?
+                                        <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#793ef9" className='transition duration-300 ease-in-out'></path> </g></svg>
+                                        :
+                                        <svg width="30px" height="30px" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#2a2e37" className='transition duration-300 ease-in-out'></path> </g></svg>
                                 }
 
-                            }}
-                        >
 
-                            <svg width="20px" height="20px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>comment-1</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" > <g id="Icon-Set" transform="translate(-100.000000, -255.000000)" fill="#793ef9"> <path d="M116,281 C114.832,281 113.704,280.864 112.62,280.633 L107.912,283.463 L107.975,278.824 C104.366,276.654 102,273.066 102,269 C102,262.373 108.268,257 116,257 C123.732,257 130,262.373 130,269 C130,275.628 123.732,281 116,281 L116,281 Z M116,255 C107.164,255 100,261.269 100,269 C100,273.419 102.345,277.354 106,279.919 L106,287 L113.009,282.747 C113.979,282.907 114.977,283 116,283 C124.836,283 132,276.732 132,269 C132,261.269 124.836,255 116,255 L116,255 Z" id="comment-1" > </path> </g> </g> </g></svg>
-                        </button>
-                        {
-                            commentsFirestore.length > 0
-                                ? <span className='text-xs text-primary'>({commentsFirestore.length})</span>
-                                : null
-                        }
+
+
+                            </button>
+
+                            {
+                                numberReactions > 0
+                                    ? <span className='text-xs text-primary'>({numberReactions})</span>
+                                    : null
+                            }
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => {
+                                    dispatch(setPostWithComments({
+                                        currentUser: currentUser,
+                                        post: post,
+                                        urlImagePost: urlImagePost,
+                                        datePosted: datePosted,
+                                        commentsFirestore: commentsFirestore,
+                                    }))
+
+                                    ModalPostWithCommentsRef.current.showModal()
+
+                                }}
+                            >
+
+
+                                <svg width="20px" height="20px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>comment-1</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" > <g id="Icon-Set" transform="translate(-100.000000, -255.000000)" fill="#793ef9"> <path d="M116,281 C114.832,281 113.704,280.864 112.62,280.633 L107.912,283.463 L107.975,278.824 C104.366,276.654 102,273.066 102,269 C102,262.373 108.268,257 116,257 C123.732,257 130,262.373 130,269 C130,275.628 123.732,281 116,281 L116,281 Z M116,255 C107.164,255 100,261.269 100,269 C100,273.419 102.345,277.354 106,279.919 L106,287 L113.009,282.747 C113.979,282.907 114.977,283 116,283 C124.836,283 132,276.732 132,269 C132,261.269 124.836,255 116,255 L116,255 Z" id="comment-1" > </path> </g> </g> </g></svg>
+                            </button>
+                            {
+                                commentsFirestore.length > 0
+                                    ? <span className='text-xs text-primary'>({commentsFirestore.length})</span>
+                                    : null
+                            }
+                        </div>
 
                     </div>
 
@@ -201,17 +250,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                     : null
             }
 
-            <PostWithCommentsCard
-                ModalPostCartWithCommentsRef={ModalPostCartWithCommentsRef}
-                commentsFirestore={commentsFirestore}
-                currentUser={currentUser}
-                datePosted={datePosted}
-                isFavoritePost={isFavoritePost}
-                post={post}
-                key={generateUniqueId()}
-                urlImagePost={urlImagePost}
-                setIsFavoritePost={setIsFavoritePost}
-            />
+
 
         </>
     )
@@ -224,5 +263,6 @@ PostCard.propTypes = {
     urlImagePost: PropTypes.any,
     datePosted: PropTypes.any,
     currentUser: PropTypes.object,
-    ModalErrorRef: PropTypes.any
+    ModalErrorRef: PropTypes.any,
+    ModalPostWithCommentsRef: PropTypes.any
 }
