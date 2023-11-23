@@ -17,7 +17,10 @@ export const modalPostWithCommentsSlice = createSlice({
             state.post = action.payload.post
             state.urlImagePost = action.payload.urlImagePost
             state.datePosted = action.payload.datePosted
+
             state.commentsFirestore = action.payload.commentsFirestore
+
+
         }
     }
 

@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types'
-import { formatDateTimeForPost } from '../helpers'
 import { useSelector } from "react-redux"
 
 export const PostWithCommentsCard = ({ ModalPostWithCommentsRef }) => {
@@ -74,7 +73,7 @@ export const PostWithCommentsCard = ({ ModalPostWithCommentsRef }) => {
 
 
                                                     <div className="">
-                                                        {`${comment?.currentUser?.name} ${comment?.currentUser?.lastName}`} <span className='text-base-content ml-2'>{formatDateTimeForPost(comment?.dateCommeted?.toDate())}</span>
+                                                        {`${comment?.currentUser?.name} ${comment?.currentUser?.lastName}`} <span className='text-base-content ml-2'>{comment?.dateCommeted}</span>
                                                     </div>
                                                 </h6>
                                                 {comment?.comment}
