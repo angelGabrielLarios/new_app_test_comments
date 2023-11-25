@@ -1,7 +1,6 @@
-export * from './LoginPage'
-export * from './RegisterPage'
-export * from './HomePage'
-export * from './VerifyEmailPage'
-
-
+export * from './LoginPage.jsx'
+export * from './RegisterPage.jsx'
+export * from './HomePage.jsx'
+export * from './VerifyEmailPage.jsx'
+export * from './EditProfilePage.jsx'
 

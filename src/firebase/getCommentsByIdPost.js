@@ -13,9 +13,6 @@ export const getCommentsByIdPost = async ({ idPost = "" }) => {
 
         const data = querySnapshot.docs.map(doc => {
             const dateCommetedTimestamp = doc.data().dateCommeted
-            console.log(dateCommetedTimestamp)
-            console.log(dateCommetedTimestamp.toDate())
-
 
             return {
                 ...doc.data(),
@@ -23,7 +20,6 @@ export const getCommentsByIdPost = async ({ idPost = "" }) => {
             }
         })
 
-        console.log(data)
 
         return data
     } catch (error) {

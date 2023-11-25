@@ -24,6 +24,8 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
 
     const [commentsFirestore, setCommentsFirestore] = useState([])
 
+    const [isLoadingReaction, setIsLoadingReaction] = useState(false)
+
     const { handleSubmit, register, reset } = useForm({
         defaultValues: {
             comment: "",
@@ -56,8 +58,6 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
     }, [isFavoritePost, idPost])
 
 
-
-
     const onSubmitAddComment = async (data) => {
         const { comment } = data
         setIsLoadingAddComment(true)
@@ -83,6 +83,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                 comment,
                 dateCommeted: Timestamp.fromDate(new Date())
             })
+
             setShowToastCommentCreated(true)
             setIsLoadingAddComment(false)
             const newComments = await getCommentsByIdPost({ idPost })
@@ -132,30 +133,36 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                                 onClick={async () => {
 
                                     const postsRef = doc(db, "posts", idPost);
+                                    try {
+                                        setIsLoadingReaction(true)
+                                        const { reactions } = await getPostById({ idPost })
+                                        if (!reactions.includes(user.uid)) {
+                                            await updateDoc(postsRef, {
+                                                reactions: arrayUnion(user.uid)
+                                            })
+                                            setIsFavoritePost(true)
+                                        }
 
-                                    const { reactions } = await getPostById({ idPost })
-
-                                    if (!reactions.includes(user.uid)) {
-                                        await updateDoc(postsRef, {
-                                            reactions: arrayUnion(user.uid)
-                                        })
-                                        setIsFavoritePost(true)
-                                        console.log('1')
+                                        else {
+                                            await updateDoc(postsRef, {
+                                                reactions: arrayRemove(user.uid)
+                                            })
+                                            setIsFavoritePost(false)
+                                        }
+                                    } catch (error) {
+                                        console.error(error)
+                                        throw new Error(error)
                                     }
-
-                                    else {
-                                        await updateDoc(postsRef, {
-                                            reactions: arrayRemove(user.uid)
-                                        })
-                                        setIsFavoritePost(false)
-
-                                        console.log('2')
+                                    finally {
+                                        setIsLoadingReaction(false)
                                     }
-
                                 }}
                             >
 
                                 {
+
+
+
                                     isFavoritePost
                                         ?
                                         <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#793ef9" className='transition duration-300 ease-in-out'></path> </g></svg>
@@ -166,7 +173,12 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
 
 
 
+
                             </button>
+
+                            {
+                                isLoadingReaction ? <span className="loading loading-bars loading-xs"></span> : null
+                            }
 
                             {
                                 numberReactions > 0
@@ -211,14 +223,18 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                 <form
                     className='flex items-center gap-2 '
                     onSubmit={handleSubmit(onSubmitAddComment)}
+                    autoComplete='off'
                 >
                     <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
 
                     <input
-                        type="text" placeholder="Escribe un comentario"
-
+                        disabled={isLoadingAddComment}
+                        type="text"
+                        placeholder="Escribe un comentario"
                         className="input input-bordered input-sm w-full block placeholder:text-xs"
-                        {...register('comment')}
+                        {...register('comment', {
+                            required: true
+                        })}
                         maxLength={300}
                         minLength={2}
                     />

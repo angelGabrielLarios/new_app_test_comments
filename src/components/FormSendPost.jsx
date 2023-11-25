@@ -1,22 +1,15 @@
-import { useEffect, useRef, useState } from "react"
-import { useSelector } from "react-redux"
-import { db, getAllPosts, getInfoUser, storage } from "../firebase"
-import { Timestamp, doc, setDoc } from "firebase/firestore"
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { useForm } from "react-hook-form"
-
-import { convertDate, formatDateTimeForPost, generateUniqueId } from "../helpers"
-import { ModalError, PostCard } from "../components"
-import { isCommentOffensive } from "../chatgpt3"
-import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
-import { Navbar } from "../components/Navbar"
+import { Timestamp, doc, setDoc } from 'firebase/firestore'
+import { useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useDispatch, useSelector } from 'react-redux'
+import { db, getInfoUser, storage } from '../firebase'
+import { generateUniqueId } from '../helpers'
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
+import { isCommentOffensive } from '../chatgpt3'
 
 
-
-
-export const HomePage = () => {
-
-
+export const FormSendPost = () => {
+    const dispatch = useDispatch()
 
     const [urlImagePost, setUrlImagePost] = useState('')
 
@@ -24,23 +17,19 @@ export const HomePage = () => {
 
     const [isLoadingSendPost, setIsLoadingSendPost] = useState(false)
 
-    const [isLoadingAllPosts, setisLoadingAllPosts] = useState(false)
 
     const [showToastPostCreated, setShowToastPostCreated] = useState(false)
 
     const [fileImage, setFileImage] = useState(null)
 
-
-    const [postsFirestore, setPostsFirestore] = useState([])
-
     const ModalErrorCommentRef = useRef(null)
 
     const ModalErrorPostRef = useRef(null)
 
-    const ModalPostWithCommentsRef = useRef(null)
 
     const { message } = useSelector(state => state.modalError)
 
+    const navigate = useNavigate()
 
     const { handleSubmit, register, reset } = useForm({
         defaultValues: {
@@ -48,6 +37,8 @@ export const HomePage = () => {
             fileImage: null
         }
     })
+
+    const dialogFormSendPostRef = useRef()
 
     const fileInputRef = useRef(null)
 
@@ -69,26 +60,6 @@ export const HomePage = () => {
 
     }
 
-    useEffect(() => {
-
-        setisLoadingAllPosts(true)
-
-        getAllPosts()
-            .then(arrPostsFirestore => {
-
-                setPostsFirestore(arrPostsFirestore)
-            })
-            .catch(error => {
-                console.error(error)
-                throw new Error(error)
-            })
-            .finally(() => {
-                setisLoadingAllPosts(false)
-            })
-
-
-
-    }, [])
     const onSubmitAddPost = async ({ post = "" }) => {
 
         try {
@@ -160,79 +131,31 @@ export const HomePage = () => {
             throw new Error(error)
         }
     }
-
-
-
     return (
         <>
-
-            <Navbar />
-
-            <section
-                className="w-full md:w-10/12 lg:w-6/12 mx-auto mt-20"
+            <article
+                className="bg-neutral p-4 rounded-xl flex items-center gap-2 lg:gap-4 mb-4"
             >
-                <article
-                    className="bg-neutral p-4 rounded-xl flex items-center gap-2 lg:gap-4 mb-4"
-                >
 
-                    <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ></path> </g></svg>
+                <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ></path> </g></svg>
 
-                    <button
-                        className="btn btn-active btn-neutral rounded-full grow text-start justify-start text-[10px] 
+                <button
+                    className="btn btn-active btn-neutral rounded-full grow text-start justify-start text-[10px] 
                         "
-                        onClick={() => document.getElementById('form_post').showModal()}
-                    >
-                        ¿Que estas pensando,<span className="text-primary">{user?.name}?</span>
-                    </button>
-                </article>
-
-                <section
-                    className="space-y-4"
+                    onClick={() => dialogFormSendPostRef.current.showModal()}
                 >
-                    {
-                        isLoadingAllPosts
-                            ? <p className="text-primary font-bold">Cargando...</p>
-                            : postsFirestore.length === 0
-                                ? <p className="text-primary font-bold">No hay posts...</p>
-                                : postsFirestore.map((doc) => {
+                    ¿Que estas pensando,<span className="text-primary">{user?.name}?</span>
+                </button>
+            </article>
 
-                                    const { currentUser = '', datePosted = '', idPost = '', post = '', urlImagePost = '' } = doc
-
-                                    return (
-                                        <PostCard
-                                            key={idPost}
-                                            datePosted={formatDateTimeForPost(datePosted.toDate())}
-                                            post={post}
-                                            idPost={idPost}
-                                            urlImagePost={urlImagePost}
-                                            currentUser={currentUser}
-                                            ModalErrorRef={ModalErrorCommentRef}
-                                            ModalPostWithCommentsRef={ModalPostWithCommentsRef}
-                                        />
-                                    )
-                                })
-
-                    }
-                </section>
-
-
-
-            </section >
-
-            <dialog id="form_post" className="modal relative">
+            <dialog
+                ref={dialogFormSendPostRef}
+                id="form_post"
+                className="modal relative"
+            >
                 <div className="modal-box space-y-3">
-                    <form method="dialog">
-                        <button
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                            onClick={() => {
-                                reset()
-                                setUrlImagePost('')
-                                setFileImage(null)
-                            }}
-                        >✕</button>
-                    </form>
                     <header className="flex items-start gap-2">
-                        <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+                        <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
 
                         <h3 className="font-bold text-base">{`${user?.name} ${user?.lastName}`}</h3>
                     </header>
@@ -242,7 +165,6 @@ export const HomePage = () => {
                         onSubmit={handleSubmit(onSubmitAddPost)}
                     >
                         <textarea
-                            disabled={isLoadingSendPost}
                             minLength={1}
                             maxLength={300}
                             className="textarea block w-full text-sm placeholder:text-sm  focus:border-0"
@@ -293,7 +215,18 @@ export const HomePage = () => {
                                     }
                                 </button>
 
-
+                                <div className="modal-action mt-0">
+                                    <form method="dialog">
+                                        <button
+                                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                            onClick={() => {
+                                                reset()
+                                                setUrlImagePost('')
+                                                setFileImage(null)
+                                            }}
+                                        >✕</button>
+                                    </form>
+                                </div>
                             </article>
 
                             <button
@@ -311,33 +244,6 @@ export const HomePage = () => {
 
                 </div>
             </dialog >
-
-            {
-                showToastPostCreated
-                    ? <div className="toast text-xs lg:text-sm">
-                        <div className="alert alert-info py-2 px-4" >
-                            <span>Post publicado.</span>
-                        </div>
-                    </div >
-                    : null
-            }
-
-            <ModalError
-                ModalErrorRef={ModalErrorCommentRef}
-                message={message}
-            />
-
-            <ModalError
-                ModalErrorRef={ModalErrorPostRef}
-                message={`El post no se puede publicar porque se ha detectado que es inapropiado `}
-            />
-
-            <PostWithCommentsCard
-                ModalPostWithCommentsRef={ModalPostWithCommentsRef}
-
-            />
-
-
         </>
     )
 }

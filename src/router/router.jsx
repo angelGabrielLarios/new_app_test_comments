@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { VerifyEmailPage, HomePage, LoginPage, RegisterPage } from "../pages";
-import { ProtectedRoute } from "../components";
+import { VerifyEmailPage, HomePage, LoginPage, RegisterPage, EditProfilePage } from "../pages";
+import { ProtectedRoute, PublicRoute } from "../components";
 
 
 
@@ -16,12 +16,37 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
     },
     {
+        path: '/edit-profile',
+        element: <ProtectedRoute
+            toredirect={`/auth/login`}
+        >
+            <EditProfilePage />
+        </ProtectedRoute>
+    },
+    {
         path: '/auth/login',
-        element: <LoginPage />
+        element: <PublicRoute
+            toredirect={`/`}
+        >
+            <LoginPage />
+        </PublicRoute>
+    },
+
+    {
+        path: '/auth/*',
+        element: <PublicRoute
+            toredirect={`/`}
+        >
+            <LoginPage />
+        </PublicRoute>
     },
     {
         path: '/auth/register',
-        element: <RegisterPage />
+        element: <PublicRoute
+            toredirect={`/`}
+        >
+            <RegisterPage />
+        </PublicRoute>
     },
 
     {
