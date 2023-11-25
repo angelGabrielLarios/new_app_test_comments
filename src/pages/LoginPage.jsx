@@ -187,8 +187,12 @@ export const LoginPage = () => {
                     }
                 </button>
 
+
                 <p className="text-center text-sm lg:text-sm">¿No tienes una cuenta? <Link className="text-secondary font-bold" to={'/auth/register'}>Create una cuenta</Link></p>
+
+                <p className="text-center text-sm lg:text-sm">¿Olvidaste tu contraseña? <Link className="text-secondary font-bold" to={'/auth/register'}>Recuperar contraseña</Link></p>
             </form>
         </main >
     )
 }
+
