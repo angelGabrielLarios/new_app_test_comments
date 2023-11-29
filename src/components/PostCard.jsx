@@ -62,6 +62,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
         const { comment } = data
         setIsLoadingAddComment(true)
         const calificationComment = await isCommentOffensive(comment)
+
         if (calificationComment) {
             setIsLoadingAddComment(false)
             dispatch(setMessage(`Este comentario no puede ser publicado por se ha dectado que es inapropiado`))
