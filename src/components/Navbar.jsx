@@ -43,7 +43,7 @@ export const Navbar = () => {
                         to={'/'}
                         className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-white to-pink-500 text-transparent bg-clip-text"
                     >
-                        Social Media
+                        Social Media1
                     </Link>
                 </div>
                 <div className="navbar-center hidden lg:flex">

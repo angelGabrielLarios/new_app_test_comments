@@ -1,9 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
-
-import { VerifyEmailPage, HomePage, LoginPage, RegisterPage, EditProfilePage } from "../pages";
+import { HomePage, LoginPage, RegisterPage, EditProfilePage, RecoverPasswordPage } from "../pages";
 import { ProtectedRoute, PublicRoute } from "../components";
-
-
 
 
 export const router = createBrowserRouter([
@@ -48,9 +45,13 @@ export const router = createBrowserRouter([
             <RegisterPage />
         </PublicRoute>
     },
-
     {
-        path: '/auth/verify-email',
-        element: <VerifyEmailPage />
-    }
+        path: '/auth/recover-password',
+        element: <PublicRoute
+            toredirect={`/`}
+        >
+            <RecoverPasswordPage />
+        </PublicRoute>
+    },
+
 ])

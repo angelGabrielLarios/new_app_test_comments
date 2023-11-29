@@ -63,6 +63,7 @@ export const RegisterPage = () => {
                 email: data.email,
             }));
 
+
             navigate('/');
 
         } catch (error) {

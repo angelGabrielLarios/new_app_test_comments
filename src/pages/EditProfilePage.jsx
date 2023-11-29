@@ -6,7 +6,6 @@ import { db, getInfoUser } from "../firebase"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { login } from "../store/auth/authSlice"
-
 export const EditProfilePage = () => {
 
     const { user } = useSelector(state => state.auth)
@@ -23,6 +22,8 @@ export const EditProfilePage = () => {
     const [showToastPostCreated, setShowToastPostCreated] = useState(false)
 
     const [isLoadingUpdateProfile, setisLoadingUpdateProfile] = useState(false)
+
+
 
 
     const onSubmitUpdateProfile = async ({ name, lastName, phone }) => {
@@ -42,6 +43,7 @@ export const EditProfilePage = () => {
                 phone: updateUser.phone,
 
             }))
+
             setShowToastPostCreated(true)
             setTimeout(() => {
                 setShowToastPostCreated(false)

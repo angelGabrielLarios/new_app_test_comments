@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { db, getAllPosts, getInfoUser, storage } from "../firebase"
+import { auth, db, getAllPosts, getInfoUser, storage } from "../firebase"
 import { Timestamp, doc, setDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useForm } from "react-hook-form"
@@ -10,6 +10,7 @@ import { ModalError, PostCard } from "../components"
 import { isCommentOffensive } from "../chatgpt3"
 import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
 import { Navbar } from "../components/Navbar"
+import { onAuthStateChanged } from "firebase/auth"
 
 
 
@@ -71,7 +72,10 @@ export const HomePage = () => {
 
     useEffect(() => {
 
+
         setisLoadingAllPosts(true)
+
+
 
         getAllPosts()
             .then(arrPostsFirestore => {
@@ -86,7 +90,18 @@ export const HomePage = () => {
                 setisLoadingAllPosts(false)
             })
 
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/auth.user
+                console.log(user)
 
+                // ...
+            } else {
+                // User is signed out
+                // ...
+            }
+        });
 
     }, [])
     const onSubmitAddPost = async ({ post = "" }) => {
