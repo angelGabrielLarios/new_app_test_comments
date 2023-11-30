@@ -7,17 +7,15 @@ import { useForm } from "react-hook-form"
 
 import { convertDate, formatDateTimeForPost, generateUniqueId } from "../helpers"
 import { ModalError, PostCard } from "../components"
-import { isCommentOffensive } from "../chatgpt3"
 import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
 import { Navbar } from "../components/Navbar"
 import { onAuthStateChanged } from "firebase/auth"
+import { messagesModel, predictComment, preprocessComment } from "../model"
 
 
 
 
 export const HomePage = () => {
-
-
 
     const [urlImagePost, setUrlImagePost] = useState('')
 
@@ -108,9 +106,11 @@ export const HomePage = () => {
 
         try {
             setIsLoadingSendPost(true)
-            const responseIsCommentOffensive = await isCommentOffensive(post)
+            const processedComment = preprocessComment(post)
+            const predictedLabel = await predictComment(processedComment)
+            console.log(predictedLabel)
 
-            if (responseIsCommentOffensive) {
+            if (predictedLabel === messagesModel.negative) {
                 setIsLoadingSendPost(false)
                 ModalErrorPostRef.current.showModal()
                 reset()
@@ -182,7 +182,7 @@ export const HomePage = () => {
         <>
 
             <Navbar />
-
+            <img src="/vite.svg" alt="" />
             <section
                 className="w-full md:w-10/12 lg:w-6/12 mx-auto mt-20"
             >

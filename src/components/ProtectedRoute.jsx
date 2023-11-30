@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 
 export const ProtectedRoute = ({ children, toredirect }) => {
     const { user } = useSelector(state => state.auth)
+    console.log('desde protected route')
 
     return (
         user ? children : <Navigate to={toredirect} />

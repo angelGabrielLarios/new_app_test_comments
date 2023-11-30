@@ -16,6 +16,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@reduxjs/toolkit": "^1.9.7",
+    "@tensorflow/tfjs": "^4.13.0",
     "adults-list": "^1.0.4",
     "firebase": "^10.5.2",
     "openai": "^4.19.0",

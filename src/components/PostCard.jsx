@@ -6,10 +6,10 @@ import { useForm } from 'react-hook-form'
 import { db, getCommentsByIdPost, getInfoUser, getPostById, } from '../firebase'
 import { useDispatch, useSelector } from 'react-redux'
 import { generateUniqueId } from '../helpers'
-import { isCommentOffensive } from '../chatgpt3/'
+
 import { setMessage } from '../store/modalError/modalErrorSlice'
 import { setPostWithComments } from '../store/modalPostWithComments'
-
+import { messagesModel, predictComment, preprocessComment } from '../model'
 
 
 export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef, ModalPostWithCommentsRef }) => {
@@ -61,9 +61,11 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
     const onSubmitAddComment = async (data) => {
         const { comment } = data
         setIsLoadingAddComment(true)
-        const calificationComment = await isCommentOffensive(comment)
+        const processedComment = preprocessComment(comment)
+        const predictedLabel = await predictComment(processedComment)
+        console.log(predictedLabel)
 
-        if (calificationComment) {
+        if (predictedLabel === messagesModel.negative) {
             setIsLoadingAddComment(false)
             dispatch(setMessage(`Este comentario no puede ser publicado por se ha dectado que es inapropiado`))
             ModalErrorRef.current.showModal()
@@ -72,6 +74,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
         }
 
         try {
+
 
             const idComment = generateUniqueId()
 
