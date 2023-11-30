@@ -9,10 +9,11 @@ import { generateUniqueId } from '../helpers'
 
 import { setMessage } from '../store/modalError/modalErrorSlice'
 import { setPostWithComments } from '../store/modalPostWithComments'
-import { messagesModel, predictComment, preprocessComment } from '../model'
+import { messagesModel } from '../model'
 
 
-export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef, ModalPostWithCommentsRef }) => {
+
+export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef, ModalPostWithCommentsRef, preprocessComment, predictComment }) => {
 
     const [isFavoritePost, setIsFavoritePost] = useState(false)
 
@@ -63,7 +64,6 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
         setIsLoadingAddComment(true)
         const processedComment = preprocessComment(comment)
         const predictedLabel = await predictComment(processedComment)
-        console.log(predictedLabel)
 
         if (predictedLabel === messagesModel.negative) {
             setIsLoadingAddComment(false)
@@ -74,10 +74,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
         }
 
         try {
-
-
             const idComment = generateUniqueId()
-
             setIsLoadingAddComment(true)
             const currentUser = await getInfoUser({ uid: user.uid })
             await setDoc(doc(db, "comments", idComment), {
@@ -284,5 +281,7 @@ PostCard.propTypes = {
     datePosted: PropTypes.any,
     currentUser: PropTypes.object,
     ModalErrorRef: PropTypes.any,
-    ModalPostWithCommentsRef: PropTypes.any
+    ModalPostWithCommentsRef: PropTypes.any,
+    preprocessComment: PropTypes.func,
+    predictComment: PropTypes.func
 }
