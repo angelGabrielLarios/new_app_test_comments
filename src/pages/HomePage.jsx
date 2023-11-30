@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { auth, db, getAllPosts, getInfoUser, storage } from "../firebase"
+import { db, getAllPosts, getInfoUser, storage } from "../firebase"
 import { Timestamp, doc, setDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useForm } from "react-hook-form"
@@ -9,7 +9,6 @@ import { convertDate, formatDateTimeForPost, generateUniqueId } from "../helpers
 import { ModalError, PostCard } from "../components"
 import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
 import { Navbar } from "../components/Navbar"
-import { onAuthStateChanged } from "firebase/auth"
 import { messagesModel, predictComment, preprocessComment } from "../model"
 
 
@@ -69,12 +68,7 @@ export const HomePage = () => {
     }
 
     useEffect(() => {
-
-
         setisLoadingAllPosts(true)
-
-
-
         getAllPosts()
             .then(arrPostsFirestore => {
 
@@ -88,18 +82,9 @@ export const HomePage = () => {
                 setisLoadingAllPosts(false)
             })
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in, see docs for a list of available properties
-                // https://firebase.google.com/docs/reference/js/auth.user
-                console.log(user)
 
-                // ...
-            } else {
-                // User is signed out
-                // ...
-            }
-        });
+
+
 
     }, [])
     const onSubmitAddPost = async ({ post = "" }) => {
@@ -154,8 +139,6 @@ export const HomePage = () => {
 
             document.getElementById('form_post').close()
 
-
-
             setShowToastPostCreated(true)
 
             setTimeout(() => {
@@ -180,9 +163,7 @@ export const HomePage = () => {
 
     return (
         <>
-
             <Navbar />
-            <img src="/vite.svg" alt="" />
             <section
                 className="w-full md:w-10/12 lg:w-6/12 mx-auto mt-20"
             >
