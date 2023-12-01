@@ -10,6 +10,7 @@ import { generateUniqueId } from '../helpers'
 import { setMessage } from '../store/modalError/modalErrorSlice'
 import { setPostWithComments } from '../store/modalPostWithComments'
 import { messagesModel } from '../model'
+import { isCommentOffensive } from '../chatgpt3'
 
 
 
@@ -82,8 +83,8 @@ export const PostCard = ({
         setIsLoadingAddComment(true)
         const processedComment = preprocessComment(comment)
         const predictedLabel = await predictComment(processedComment)
-
-        if (predictedLabel === messagesModel.negative) {
+        const responseCommentChatGPT = isCommentOffensive(comment)
+        if ((predictedLabel === messagesModel.negative) && responseCommentChatGPT === 1) {
             setIsLoadingAddComment(false)
             dispatch(setMessage(`Este comentario no puede ser publicado por se ha dectado que es inapropiado`))
             ModalErrorRef.current.showModal()

@@ -5,6 +5,8 @@ import { Timestamp, doc, setDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useForm } from "react-hook-form"
 
+import { useNavigate } from 'react-router-dom'
+
 import { convertDate, formatDateTimeForPost, generateUniqueId } from "../helpers"
 import { ModalError, PostCard } from "../components"
 import { PostWithCommentsCard } from "../components/PostWithCommentsCard"
@@ -13,6 +15,7 @@ import { Navbar } from "../components/Navbar"
 
 import * as tf from '@tensorflow/tfjs';
 import { messagesModel } from "../model"
+import { isCommentOffensive } from "../chatgpt3/"
 
 
 export const HomePage = () => {
@@ -44,6 +47,9 @@ export const HomePage = () => {
     const ModalPostWithCommentsRef = useRef(null)
     const { message } = useSelector(state => state.modalError)
 
+    /* navgega */
+    const navigate = useNavigate()
+
 
     const { handleSubmit, register, reset } = useForm({
         defaultValues: {
@@ -71,6 +77,8 @@ export const HomePage = () => {
         } catch (error) {
             setIsLoadingModel(false);
             console.error('Error loading model or tokenizer configuration:', error);
+            navigate('/error-load-model')
+
         }
     };
 
@@ -154,10 +162,11 @@ export const HomePage = () => {
         try {
             setIsLoadingSendPost(true)
             const processedComment = preprocessComment(post)
+            const reponseCommentChatGPT = await isCommentOffensive(post)
             const predictedLabel = await predictComment(processedComment)
             console.log(predictedLabel)
 
-            if (predictedLabel === messagesModel.negative) {
+            if ((predictedLabel === messagesModel.negative) && reponseCommentChatGPT === 1) {
                 setIsLoadingSendPost(false)
                 ModalErrorPostRef.current.showModal()
                 reset()
