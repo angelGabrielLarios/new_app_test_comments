@@ -311,7 +311,8 @@ export const HomePage = () => {
                                         minLength={1}
                                         maxLength={300}
                                         className="textarea block w-full text-sm placeholder:text-sm  focus:border-0"
-                                        {...register('post')}
+                                        {...register('post', {})}
+                                        required={true}
                                         placeholder={`¿Qué estas pensando ${user?.name}?`}
                                     ></textarea>
                                     {
