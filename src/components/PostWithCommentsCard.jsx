@@ -99,7 +99,7 @@ export const PostWithCommentsCard = ({ ModalPostWithCommentsRef }) => {
                                             </section>
 
                                             {
-                                                comment?.currentUser?.uid === user.uid
+                                                comment?.currentUser?.uid === user?.uid
                                                     ? <button
                                                         className=''
                                                         type='button'

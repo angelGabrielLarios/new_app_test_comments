@@ -56,7 +56,7 @@ export const PostCard = ({
 
     const [numberReactions, setNumberReactions] = useState(0)
 
-    const showActionDelete = user.uid === currentUser.uid
+    const showActionDelete = user.uid === currentUser?.uid
     useEffect(() => {
         getCommentsByIdPost({ idPost })
             .then(arrCommentsFirestore => setCommentsFirestore(arrCommentsFirestore))
