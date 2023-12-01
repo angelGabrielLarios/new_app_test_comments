@@ -17,34 +17,31 @@ import { messagesModel } from "../model"
 
 export const HomePage = () => {
 
-    const max_length = 42
-    const [model, setModel] = useState()
 
-    const [tokenizerConfig, setTokenizerConfig] = useState()
-
-    const [isLoadingModel, setIsLoadingModel] = useState(false)
-
-    const [urlImagePost, setUrlImagePost] = useState('')
-
+    /* recuperar el usuario actual */
     const { user } = useSelector(state => state.auth)
 
-    const [isLoadingSendPost, setIsLoadingSendPost] = useState(false)
+    /* esto es parte del modelo */
+    const max_length = 42
+    const [model, setModel] = useState()
+    const [tokenizerConfig, setTokenizerConfig] = useState()
+    const [isLoadingModel, setIsLoadingModel] = useState(false)
 
-    const [isLoadingAllPosts, setisLoadingAllPosts] = useState(false)
-
-    const [showToastPostCreated, setShowToastPostCreated] = useState(false)
-
+    /* para el input file */
+    const [urlImagePost, setUrlImagePost] = useState('')
     const [fileImage, setFileImage] = useState(null)
 
-
+    /* aciones de crear y mostrar posts */
     const [postsFirestore, setPostsFirestore] = useState([])
+    const [isLoadingAllPosts, setisLoadingAllPosts] = useState(false)
+    const [isLoadingSendPost, setIsLoadingSendPost] = useState(false)
+    const [showToastPostCreated, setShowToastPostCreated] = useState(false)
 
+
+    /* los modales */
     const ModalErrorCommentRef = useRef(null)
-
     const ModalErrorPostRef = useRef(null)
-
     const ModalPostWithCommentsRef = useRef(null)
-
     const { message } = useSelector(state => state.modalError)
 
 
@@ -128,12 +125,10 @@ export const HomePage = () => {
 
     const onChangeFileInput = event => {
         const image = event.target.files[0]
-
         if (image) {
             setUrlImagePost(
                 URL.createObjectURL(image)
             )
-
             setFileImage(image)
 
         }
@@ -141,13 +136,10 @@ export const HomePage = () => {
     }
 
     useEffect(() => {
-
         loadModelAndTokenizer();
-
         setisLoadingAllPosts(true);
         getAllPosts()
             .then(arrPostsFirestore => {
-
                 setPostsFirestore(arrPostsFirestore)
             })
             .catch(error => {
@@ -159,7 +151,6 @@ export const HomePage = () => {
             })
     }, [])
     const onSubmitAddPost = async ({ post = "" }) => {
-
         try {
             setIsLoadingSendPost(true)
             const processedComment = preprocessComment(post)
@@ -172,25 +163,17 @@ export const HomePage = () => {
                 reset()
                 return
             }
-
             setIsLoadingSendPost(true)
-
             const currentUser = await getInfoUser({ uid: user.uid })
             const datePostPosted = new Date().toLocaleString()
-
             let urlImagePost = null
 
             if (fileImage) {
-
                 const storageRef = ref(storage, `${user.uid}/${user.uid}_${convertDate(datePostPosted)}`);
-
                 await uploadBytes(storageRef, fileImage)
                 urlImagePost = await getDownloadURL(storageRef)
             }
-
-
             const idPost = generateUniqueId()
-
             await setDoc(doc(db, "posts", idPost), {
                 idPost,
                 currentUser,
@@ -199,17 +182,11 @@ export const HomePage = () => {
                 urlImagePost: urlImagePost,
                 reactions: []
             })
-
             setIsLoadingSendPost(false)
-
             reset()
-
             setUrlImagePost('')
-
             setFileImage(null)
-
             document.getElementById('form_post').close()
-
             setShowToastPostCreated(true)
 
             setTimeout(() => {
@@ -229,8 +206,6 @@ export const HomePage = () => {
             throw new Error(error)
         }
     }
-
-
 
     return (
         <>
@@ -288,6 +263,8 @@ export const HomePage = () => {
                                                         ModalPostWithCommentsRef={ModalPostWithCommentsRef}
                                                         predictComment={predictComment}
                                                         preprocessComment={preprocessComment}
+                                                        setPostsFirestore={setPostsFirestore}
+                                                        setIsLoadingAllPosts={setisLoadingAllPosts}
                                                     />
                                                 )
                                             })
@@ -418,10 +395,6 @@ export const HomePage = () => {
                         />
                     </>
             }
-
-
-
-
 
         </>
     )

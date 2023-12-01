@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types'
 
-import { Timestamp, arrayRemove, arrayUnion, doc, setDoc, updateDoc } from 'firebase/firestore'
-import { useEffect, useState } from 'react'
+import { Timestamp, arrayRemove, arrayUnion, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { db, getCommentsByIdPost, getInfoUser, getPostById, } from '../firebase'
+import { db, getAllPosts, getCommentsByIdPost, getInfoUser, getPostById, } from '../firebase'
 import { useDispatch, useSelector } from 'react-redux'
 import { generateUniqueId } from '../helpers'
 
@@ -13,7 +13,23 @@ import { messagesModel } from '../model'
 
 
 
-export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, ModalErrorRef, ModalPostWithCommentsRef, preprocessComment, predictComment }) => {
+export const PostCard = ({
+    idPost,
+    post,
+    urlImagePost,
+    datePosted,
+    currentUser,
+    ModalErrorRef,
+    ModalPostWithCommentsRef,
+    preprocessComment,
+    predictComment,
+
+    setPostsFirestore,
+
+    setIsLoadingAllPosts
+}) => {
+
+
 
     const [isFavoritePost, setIsFavoritePost] = useState(false)
 
@@ -30,21 +46,23 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
     const { handleSubmit, register, reset } = useForm({
         defaultValues: {
             comment: "",
-
         }
     })
+
+    const [isLoadingDeletePost, setIsLoadingDeletePost] = useState(false)
 
     const [isLoadingAddComment, setIsLoadingAddComment] = useState(false)
 
     const [numberReactions, setNumberReactions] = useState(0)
 
-
+    const showActionDelete = user.uid === currentUser.uid
     useEffect(() => {
         getCommentsByIdPost({ idPost })
             .then(arrCommentsFirestore => setCommentsFirestore(arrCommentsFirestore))
 
     }, [idPost])
 
+    const modalConfirmationRef = useRef()
 
     useEffect(() => {
         getPostById({ idPost })
@@ -105,12 +123,26 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
             <section className="bg-neutral rounded-lg p-4 space-y-3">
                 <article className="flex items-center">
                     <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#5311f3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
-                    <div className="ml-3 ">
 
+                    <div className="ml-3">
                         <span className="text-sm font-semibold antialiased block leading-tight">{`${currentUser?.name} ${currentUser?.lastName}`}</span>
 
                         <span className="text-base-content text-xs block">{datePosted}</span>
                     </div>
+                    {
+                        showActionDelete
+                            ?
+                            <button
+                                className='ml-auto'
+                                type='button'
+                                onClick={() => modalConfirmationRef.current?.showModal()}
+                            >
+                                <svg width="15px" height="15px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>delete [#ff6b6b1487]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-179.000000, -360.000000)" fill="#ff6b6b"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M130.35,216 L132.45,216 L132.45,208 L130.35,208 L130.35,216 Z M134.55,216 L136.65,216 L136.65,208 L134.55,208 L134.55,216 Z M128.25,218 L138.75,218 L138.75,206 L128.25,206 L128.25,218 Z M130.35,204 L136.65,204 L136.65,202 L130.35,202 L130.35,204 Z M138.75,204 L138.75,200 L128.25,200 L128.25,204 L123,204 L123,206 L126.15,206 L126.15,220 L140.85,220 L140.85,206 L144,206 L144,204 L138.75,204 Z" id="delete-[#ff6b6b1487]"> </path> </g> </g> </g> </g></svg>
+                            </button>
+
+                            : null
+                    }
+
                 </article>
 
                 <p
@@ -161,19 +193,12 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                             >
 
                                 {
-
-
-
                                     isFavoritePost
                                         ?
                                         <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#793ef9" className='transition duration-300 ease-in-out'></path> </g></svg>
                                         :
                                         <svg width="30px" height="30px" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#793ef9"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="#2a2e37" className='transition duration-300 ease-in-out'></path> </g></svg>
                                 }
-
-
-
-
 
                             </button>
 
@@ -194,6 +219,7 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                                     dispatch(setPostWithComments({
                                         currentUser: currentUser,
                                         post: post,
+                                        idPost: idPost,
                                         urlImagePost: urlImagePost,
                                         datePosted: datePosted,
                                         commentsFirestore: commentsFirestore,
@@ -267,6 +293,54 @@ export const PostCard = ({ idPost, post, urlImagePost, datePosted, currentUser, 
                     : null
             }
 
+            <dialog
+                ref={modalConfirmationRef}
+                className="modal"
+            >
+                <div className="modal-box">
+                    <p className="py-4 text-error font-bold">¿Esta seguro de eliminar este post?</p>
+                    <div className="modal-action">
+
+                        <form action=""
+                            onSubmit={async (event) => {
+                                event.preventDefault()
+                                setIsLoadingDeletePost(true)
+                                setIsLoadingAllPosts(true)
+                                try {
+                                    await deleteDoc(doc(db, "posts", `${idPost}`));
+                                    const newPosts = await getAllPosts()
+                                    setPostsFirestore(newPosts)
+                                } catch (error) {
+                                    console.log(error)
+                                }
+
+                                finally {
+                                    setIsLoadingDeletePost(false)
+                                    setIsLoadingAllPosts(false)
+                                    modalConfirmationRef.current?.close()
+                                }
+                            }}
+                        >
+                            <button
+                                disabled={isLoadingDeletePost}
+                                className='btn btn-sm btn-error text-xs flex items-center gap-2'
+
+                            >
+                                Eliminar
+                                {
+                                    isLoadingDeletePost
+                                        ? <span className="loading loading-bars loading-xs"></span>
+                                        : null
+                                }
+                            </button>
+                        </form>
+                        <form method="dialog">
+
+                            <button className="btn btn-sm text-xs">cancelar</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
 
 
         </>
@@ -283,5 +357,7 @@ PostCard.propTypes = {
     ModalErrorRef: PropTypes.any,
     ModalPostWithCommentsRef: PropTypes.any,
     preprocessComment: PropTypes.func,
-    predictComment: PropTypes.func
+    predictComment: PropTypes.func,
+    setPostsFirestore: PropTypes.any,
+    setIsLoadingAllPosts: PropTypes.any
 }

@@ -9,11 +9,13 @@ export const modalPostWithCommentsSlice = createSlice({
         urlImagePost: null,
         datePosted: null,
         commentsFirestore: [],
+        idPost: null
     },
 
     reducers: {
         setPostWithComments: (state, action) => {
             state.currentUser = action.payload.currentUser
+            state.idPost = action.payload.idPost
             state.post = action.payload.post
             state.urlImagePost = action.payload.urlImagePost
             state.datePosted = action.payload.datePosted
