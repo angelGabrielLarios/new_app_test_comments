@@ -264,6 +264,7 @@ export const PostCard = ({
                         {...register('comment', {
                             required: true
                         })}
+                        required={true}
                         maxLength={300}
                         minLength={2}
                     />
