@@ -15,7 +15,7 @@ import { Navbar } from "../components/Navbar"
 
 import * as tf from '@tensorflow/tfjs';
 import { messagesModel } from "../model"
-import { isCommentOffensive } from "../chatgpt3/"
+
 
 
 export const HomePage = () => {
@@ -162,11 +162,10 @@ export const HomePage = () => {
         try {
             setIsLoadingSendPost(true)
             const processedComment = preprocessComment(post)
-            const reponseCommentChatGPT = await isCommentOffensive(post)
             const predictedLabel = await predictComment(processedComment)
             console.log(predictedLabel)
 
-            if ((predictedLabel === messagesModel.negative) && reponseCommentChatGPT === 1) {
+            if ((predictedLabel === messagesModel.negative)) {
                 setIsLoadingSendPost(false)
                 ModalErrorPostRef.current.showModal()
                 reset()
